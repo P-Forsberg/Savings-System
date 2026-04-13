@@ -1,5 +1,5 @@
 import createHttpError from "http-errors";
-import { supabase } from "../../lib/supabase.js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Contribution } from "../../types/domain.js";
 
 function mapContribution(row: any): Contribution {
@@ -16,13 +16,14 @@ function mapContribution(row: any): Contribution {
 }
 
 export async function createContribution(input: {
+  supabase: SupabaseClient;
   goalId: string;
   userId: string;
   contributionDate: string;
   amount: number;
   note?: string;
 }) {
-  const { data, error } = await supabase
+  const { data, error } = await input.supabase
     .from("goal_contributions")
     .insert({
       goal_id: input.goalId,
@@ -40,7 +41,7 @@ export async function createContribution(input: {
   return mapContribution(data);
 }
 
-export async function listContributionsByGoal(goalId: string, userId: string) {
+export async function listContributionsByGoal(supabase: SupabaseClient, goalId: string, userId: string) {
   const { data, error } = await supabase
     .from("goal_contributions")
     .select("*")
@@ -55,6 +56,7 @@ export async function listContributionsByGoal(goalId: string, userId: string) {
 }
 
 export async function updateContribution(
+  supabase: SupabaseClient,
   id: string,
   userId: string,
   patch: Partial<Pick<Contribution, "amount" | "contributionDate" | "note">>
@@ -81,7 +83,7 @@ export async function updateContribution(
   return mapContribution(data);
 }
 
-export async function deleteContribution(id: string, userId: string) {
+export async function deleteContribution(supabase: SupabaseClient, id: string, userId: string) {
   const { error } = await supabase.from("goal_contributions").delete().eq("id", id).eq("user_id", userId);
   if (error) {
     throw createHttpError(400, error.message);

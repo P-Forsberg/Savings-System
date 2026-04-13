@@ -1,6 +1,6 @@
 import createHttpError from "http-errors";
 import type { NextFunction, Request, Response } from "express";
-import { supabase } from "../lib/supabase.js";
+import { createUserSupabaseClient, supabase } from "../lib/supabase.js";
 
 function extractBearerToken(req: Request): string | null {
   const header = req.headers.authorization;
@@ -26,5 +26,6 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
   }
 
   req.authUser = data.user;
+  req.supabase = createUserSupabaseClient(token);
   next();
 }

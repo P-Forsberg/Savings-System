@@ -1,0 +1,12 @@
+{
+  "name": "savingscounter",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm --prefix apps/api run dev\" \"npm --prefix apps/web run dev\"",
+    "dev:api": "npm --prefix apps/api run dev",
+    "dev:web": "npm --prefix apps/web run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

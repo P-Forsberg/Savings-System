@@ -1,5 +1,5 @@
 import createHttpError from "http-errors";
-import { supabase } from "../../lib/supabase.js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { SavingsGoal } from "../../types/domain.js";
 
 function mapGoal(row: any): SavingsGoal {
@@ -18,6 +18,7 @@ function mapGoal(row: any): SavingsGoal {
 }
 
 export async function createGoal(input: {
+  supabase: SupabaseClient;
   userId: string;
   title: string;
   targetAmount: number;
@@ -25,7 +26,7 @@ export async function createGoal(input: {
   targetDate: string;
   plannedMonthlyAmount: number;
 }) {
-  const { data, error } = await supabase
+  const { data, error } = await input.supabase
     .from("savings_goals")
     .insert({
       user_id: input.userId,
@@ -44,7 +45,7 @@ export async function createGoal(input: {
   return mapGoal(data);
 }
 
-export async function listGoals(userId: string) {
+export async function listGoals(supabase: SupabaseClient, userId: string) {
   const { data, error } = await supabase
     .from("savings_goals")
     .select("*")
@@ -56,7 +57,7 @@ export async function listGoals(userId: string) {
   return (data ?? []).map(mapGoal);
 }
 
-export async function getGoalById(id: string, userId: string) {
+export async function getGoalById(supabase: SupabaseClient, id: string, userId: string) {
   const { data, error } = await supabase
     .from("savings_goals")
     .select("*")
@@ -73,6 +74,7 @@ export async function getGoalById(id: string, userId: string) {
 }
 
 export async function updateGoal(
+  supabase: SupabaseClient,
   id: string,
   userId: string,
   patch: Partial<Pick<SavingsGoal, "title" | "targetAmount" | "targetDate" | "plannedMonthlyAmount" | "status">>
@@ -100,7 +102,7 @@ export async function updateGoal(
   return mapGoal(data);
 }
 
-export async function archiveGoal(id: string, userId: string) {
+export async function archiveGoal(supabase: SupabaseClient, id: string, userId: string) {
   const { data, error } = await supabase
     .from("savings_goals")
     .update({ status: "archived" })

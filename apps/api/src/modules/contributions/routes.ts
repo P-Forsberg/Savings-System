@@ -13,6 +13,7 @@ contributionsRouter.post("/goals/:id/contributions", async (req, res, next) => {
   try {
     const payload = createContributionSchema.parse(req.body);
     const contribution = await createContribution({
+      supabase: req.supabase!,
       goalId: req.params.id,
       userId: req.authUser!.id,
       ...payload
@@ -25,7 +26,7 @@ contributionsRouter.post("/goals/:id/contributions", async (req, res, next) => {
 
 contributionsRouter.get("/goals/:id/contributions", async (req, res, next) => {
   try {
-    const contributions = await listContributionsByGoal(req.params.id, req.authUser!.id);
+    const contributions = await listContributionsByGoal(req.supabase!, req.params.id, req.authUser!.id);
     res.json(contributions);
   } catch (error) {
     next(error);
@@ -35,7 +36,7 @@ contributionsRouter.get("/goals/:id/contributions", async (req, res, next) => {
 contributionsRouter.patch("/contributions/:contributionId", async (req, res, next) => {
   try {
     const patch = updateContributionSchema.parse(req.body);
-    const contribution = await updateContribution(req.params.contributionId, req.authUser!.id, patch);
+    const contribution = await updateContribution(req.supabase!, req.params.contributionId, req.authUser!.id, patch);
     res.json(contribution);
   } catch (error) {
     next(error);
@@ -44,7 +45,7 @@ contributionsRouter.patch("/contributions/:contributionId", async (req, res, nex
 
 contributionsRouter.delete("/contributions/:contributionId", async (req, res, next) => {
   try {
-    await deleteContribution(req.params.contributionId, req.authUser!.id);
+    await deleteContribution(req.supabase!, req.params.contributionId, req.authUser!.id);
     res.status(204).send();
   } catch (error) {
     next(error);

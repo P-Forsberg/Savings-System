@@ -1,0 +1,175 @@
+:root {
+  font-family: Inter, system-ui, Arial, sans-serif;
+  color: #122034;
+  background: #f4f7fb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: end;
+}
+
+h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+h2, h3, p {
+  margin: 0;
+}
+
+.muted {
+  color: #55708b;
+}
+
+.error {
+  color: #b2002d;
+}
+
+.nav {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.nav a {
+  text-decoration: none;
+  color: #0d4ea2;
+  background: #e9f1fb;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 600;
+}
+
+.nav a.active {
+  background: #0d4ea2;
+  color: #fff;
+}
+
+.page {
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #dbe6f2;
+  display: grid;
+  gap: 8px;
+}
+
+.value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.goals-grid, .kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.goal-card {
+  text-decoration: none;
+  color: inherit;
+}
+
+.progress-track {
+  height: 10px;
+  border-radius: 999px;
+  background: #e7eef5;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #178a55;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+label {
+  display: grid;
+  gap: 4px;
+}
+
+input {
+  border: 1px solid #c3d2e2;
+  border-radius: 8px;
+  padding: 10px;
+  font: inherit;
+}
+
+button {
+  border: 0;
+  background: #0d4ea2;
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.auth-card {
+  width: min(420px, 100%);
+}
+
+.auth-form {
+  display: grid;
+  gap: 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: left;
+  border-bottom: 1px solid #dbe6f2;
+  padding: 8px 4px;
+}

@@ -8,8 +8,8 @@ export const projectionsRouter = Router();
 projectionsRouter.get("/goals/:id/projection", async (req, res, next) => {
   try {
     const userId = req.authUser!.id;
-    const goal = await getGoalById(req.params.id, userId);
-    const contributions = await listContributionsByGoal(goal.id, userId);
+    const goal = await getGoalById(req.supabase!, req.params.id, userId);
+    const contributions = await listContributionsByGoal(req.supabase!, goal.id, userId);
     res.json(projectGoal(goal, contributions));
   } catch (error) {
     next(error);

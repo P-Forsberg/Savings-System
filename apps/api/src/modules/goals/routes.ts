@@ -10,6 +10,7 @@ goalsRouter.post("/", async (req, res, next) => {
   try {
     const input = createGoalSchema.parse(req.body);
     const goal = await createGoal({
+      supabase: req.supabase!,
       userId: req.authUser!.id,
       ...input
     });
@@ -22,10 +23,10 @@ goalsRouter.post("/", async (req, res, next) => {
 goalsRouter.get("/", async (req, res, next) => {
   try {
     const userId = req.authUser!.id;
-    const goals = await listGoals(userId);
+    const goals = await listGoals(req.supabase!, userId);
     const withProjection = await Promise.all(
       goals.map(async (goal) => {
-        const contributions = await listContributionsByGoal(goal.id, userId);
+        const contributions = await listContributionsByGoal(req.supabase!, goal.id, userId);
         return {
           ...goal,
           projection: projectGoal(goal, contributions)
@@ -41,8 +42,8 @@ goalsRouter.get("/", async (req, res, next) => {
 goalsRouter.get("/:id", async (req, res, next) => {
   try {
     const userId = req.authUser!.id;
-    const goal = await getGoalById(req.params.id, userId);
-    const contributions = await listContributionsByGoal(goal.id, userId);
+    const goal = await getGoalById(req.supabase!, req.params.id, userId);
+    const contributions = await listContributionsByGoal(req.supabase!, goal.id, userId);
     res.json({
       goal,
       contributions,
@@ -56,7 +57,7 @@ goalsRouter.get("/:id", async (req, res, next) => {
 goalsRouter.patch("/:id", async (req, res, next) => {
   try {
     const patch = updateGoalSchema.parse(req.body);
-    const goal = await updateGoal(req.params.id, req.authUser!.id, patch);
+    const goal = await updateGoal(req.supabase!, req.params.id, req.authUser!.id, patch);
     res.json(goal);
   } catch (error) {
     next(error);
@@ -65,7 +66,7 @@ goalsRouter.patch("/:id", async (req, res, next) => {
 
 goalsRouter.delete("/:id", async (req, res, next) => {
   try {
-    await archiveGoal(req.params.id, req.authUser!.id);
+    await archiveGoal(req.supabase!, req.params.id, req.authUser!.id);
     res.status(204).send();
   } catch (error) {
     next(error);
