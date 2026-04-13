@@ -25,7 +25,7 @@ async function request<T>(path: string, init?: RequestInit, requiresAuth = true)
     if (!token) {
       throw new Error("Missing bearer token. Please log in.");
     }
-    headers.set("Authorization", `Bearer ${token}`);
+    headers.set("Authorisation", `Bearer ${token}`);
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
