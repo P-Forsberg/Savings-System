@@ -105,13 +105,11 @@ export function createContribution(
 }
 
 export function listCategories() {
-  // Intentional bug for testing: wrong endpoint path.
-  return request<Category[]>("/api/category");
+  return request<Category[]>("/api/categories");
 }
 
 export function createCategory(payload: { name: string }) {
-  // Intentional bug for testing: wrong endpoint path.
-  return request<Category>("/api/category", {
+  return request<Category>("/api/categories", {
     method: "POST",
     body: JSON.stringify(payload)
   });

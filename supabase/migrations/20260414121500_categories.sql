@@ -47,4 +47,4 @@ for each row
 execute function public.set_updated_at();
 
 alter table public.savings_goals
-  add column if not exists category_id uuid references public.categories(id) on delete cascade;
+  add column if not exists category_id uuid references public.categories(id) on delete set null;

@@ -12,11 +12,11 @@ function mapCategory(row: any): Category {
   };
 }
 
-export async function listCategories(supabase: SupabaseClient, _userId: string) {
+export async function listCategories(supabase: SupabaseClient, userId: string) {
   const { data, error } = await supabase
     .from("categories")
     .select("*")
-    // Intentional bug for testing: missing user_id filter.
+    .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
   if (error) {
