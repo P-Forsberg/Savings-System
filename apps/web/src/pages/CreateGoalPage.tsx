@@ -1,7 +1,9 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { createGoal } from "../lib/api";
+import { createGoal, listCategories } from "../lib/api";
+import type { Category } from "../types";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -21,8 +23,18 @@ export function CreateGoalPage() {
   const [plannedMonthlyAmount, setPlannedMonthlyAmount] = useState("");
   const [startDate, setStartDate] = useState(todayIso());
   const [targetDate, setTargetDate] = useState(nextYearIso());
+  const [categoryId, setCategoryId] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    listCategories()
+      .then((items) => setCategories(items))
+      .catch(() => {
+        // keep create-goal usable even if categories fail
+      });
+  }, []);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -51,7 +63,8 @@ export function CreateGoalPage() {
         targetAmount: parsedTarget,
         plannedMonthlyAmount: parsedMonthly,
         startDate,
-        targetDate
+        targetDate,
+        categoryId: categoryId || undefined
       });
       navigate(`/goals/${newGoal.id}`);
     } catch (err) {
@@ -92,6 +105,17 @@ export function CreateGoalPage() {
         <label>
           Start date
           <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
+        </label>
+        <label>
+          Category
+          <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
+            <option value="">No category</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
         </label>
         <label>
           Target date

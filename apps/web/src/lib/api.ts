@@ -1,4 +1,4 @@
-import type { Contribution, Goal, GoalProjection, GoalWithProjection } from "../types";
+import type { Category, Contribution, Goal, GoalProjection, GoalStatus, GoalWithProjection } from "../types";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "";
 const TOKEN_STORAGE_KEY = "savings_api_token";
@@ -64,10 +64,33 @@ export function createGoal(payload: {
   startDate: string;
   targetDate: string;
   plannedMonthlyAmount: number;
+  categoryId?: string;
 }) {
   return request<Goal>("/api/goals", {
     method: "POST",
     body: JSON.stringify(payload)
+  });
+}
+
+export function updateGoal(
+  goalId: string,
+  payload: Partial<{
+    title: string;
+    targetAmount: number;
+    targetDate: string;
+    plannedMonthlyAmount: number;
+    status: GoalStatus;
+  }>
+) {
+  return request<Goal>(`/api/goals/${goalId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function deleteGoal(goalId: string) {
+  return request<void>(`/api/goals/${goalId}`, {
+    method: "DELETE"
   });
 }
 
@@ -76,6 +99,19 @@ export function createContribution(
   payload: { contributionDate: string; amount: number; note?: string }
 ) {
   return request<Contribution>(`/api/goals/${goalId}/contributions`, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+}
+
+export function listCategories() {
+  // Intentional bug for testing: wrong endpoint path.
+  return request<Category[]>("/api/category");
+}
+
+export function createCategory(payload: { name: string }) {
+  // Intentional bug for testing: wrong endpoint path.
+  return request<Category>("/api/category", {
     method: "POST",
     body: JSON.stringify(payload)
   });

@@ -3,6 +3,7 @@ export type GoalStatus = "active" | "completed" | "paused" | "archived";
 export interface Goal {
   id: string;
   userId: string;
+  categoryId?: string | null;
   title: string;
   targetAmount: number;
   startDate: string;
@@ -37,4 +38,12 @@ export interface GoalProjection {
 
 export interface GoalWithProjection extends Goal {
   projection: GoalProjection;
+}
+
+export interface Category {
+  id: string;
+  userId: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
 }

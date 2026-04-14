@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { createGoalSchema, updateGoalSchema } from "./schemas.js";
-import { archiveGoal, createGoal, getGoalById, listGoals, updateGoal } from "./repository.js";
+import { createGoal, deleteGoal, getGoalById, listGoals, updateGoal } from "./repository.js";
 import { listContributionsByGoal } from "../contributions/repository.js";
 import { projectGoal } from "../projections/calculation-service.js";
 
@@ -66,7 +66,7 @@ goalsRouter.patch("/:id", async (req, res, next) => {
 
 goalsRouter.delete("/:id", async (req, res, next) => {
   try {
-    await archiveGoal(req.supabase!, req.params.id, req.authUser!.id);
+    await deleteGoal(req.supabase!, req.params.id, req.authUser!.id);
     res.status(204).send();
   } catch (error) {
     next(error);

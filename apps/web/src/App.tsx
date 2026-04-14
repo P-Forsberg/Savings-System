@@ -3,7 +3,9 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
 import { getStoredToken } from "./lib/api";
 import { CreateGoalPage } from "./pages/CreateGoalPage";
+import { CategoriesPage } from "./pages/CategoriesPage";
 import { GoalDetailsPage } from "./pages/GoalDetailsPage";
+import { HistorySavingsPage } from "./pages/HistorySavingsPage";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { SettingsPage } from "./pages/SettingsPage";
@@ -28,8 +30,10 @@ function App() {
         }
       >
         <Route path="/" element={<HomePage />} />
+        <Route path="/history-savings" element={<HistorySavingsPage />} />
         <Route path="/goals/:goalId" element={<GoalDetailsPage />} />
         <Route path="/create" element={<CreateGoalPage />} />
+        <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { useParams } from "react-router-dom";
-import { createContribution, getGoal } from "../lib/api";
+import { useNavigate, useParams } from "react-router-dom";
+import { createContribution, deleteGoal, getGoal, updateGoal } from "../lib/api";
 import { formatIsoDate, formatSek } from "../lib/format";
 import type { Contribution, Goal, GoalProjection } from "../types";
 
 export function GoalDetailsPage() {
   const { goalId = "" } = useParams();
+  const navigate = useNavigate();
 
   const [goal, setGoal] = useState<Goal | null>(null);
   const [projection, setProjection] = useState<GoalProjection | null>(null);
@@ -14,6 +15,7 @@ export function GoalDetailsPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [actionPending, setActionPending] = useState(false);
 
   const [contributionDate, setContributionDate] = useState(new Date().toISOString().slice(0, 10));
   const [amount, setAmount] = useState("");
@@ -67,6 +69,44 @@ export function GoalDetailsPage() {
     }
   }
 
+  async function handleMarkCompleted() {
+    if (!goal) {
+      return;
+    }
+
+    setActionPending(true);
+    setError("");
+    try {
+      await updateGoal(goal.id, { status: "completed" });
+      await loadGoal();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setActionPending(false);
+    }
+  }
+
+  async function handleDeleteGoal() {
+    if (!goal) {
+      return;
+    }
+
+    const confirmed = window.confirm("Delete this goal permanently?");
+    if (!confirmed) {
+      return;
+    }
+
+    setActionPending(true);
+    setError("");
+    try {
+      await deleteGoal(goal.id);
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError((err as Error).message);
+      setActionPending(false);
+    }
+  }
+
   if (loading) {
     return <p>Loading goal...</p>;
   }
@@ -86,6 +126,21 @@ export function GoalDetailsPage() {
         <p className="muted">
           {formatIsoDate(goal.startDate)} - {formatIsoDate(goal.targetDate)}
         </p>
+        <p className="muted">
+          Status: <strong>{goal.status}</strong>
+        </p>
+        <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.75rem" }}>
+          <button
+            type="button"
+            onClick={handleMarkCompleted}
+            disabled={actionPending || goal.status === "completed"}
+          >
+            {actionPending ? "Saving..." : "Complete/Purchased"}
+          </button>
+          <button type="button" onClick={handleDeleteGoal} disabled={actionPending}>
+            Delete
+          </button>
+        </div>
       </div>
 
       <div className="kpi-grid">

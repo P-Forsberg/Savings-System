@@ -6,6 +6,7 @@ function mapGoal(row: any): SavingsGoal {
   return {
     id: row.id,
     userId: row.user_id,
+    categoryId: row.category_id,
     title: row.title,
     targetAmount: Number(row.target_amount),
     startDate: row.start_date,
@@ -25,6 +26,7 @@ export async function createGoal(input: {
   startDate: string;
   targetDate: string;
   plannedMonthlyAmount: number;
+  categoryId?: string;
 }) {
   const { data, error } = await input.supabase
     .from("savings_goals")
@@ -34,7 +36,8 @@ export async function createGoal(input: {
       target_amount: input.targetAmount,
       start_date: input.startDate,
       target_date: input.targetDate,
-      planned_monthly_amount: input.plannedMonthlyAmount
+      planned_monthly_amount: input.plannedMonthlyAmount,
+      category_id: input.categoryId ?? null
     })
     .select("*")
     .single();
@@ -77,7 +80,9 @@ export async function updateGoal(
   supabase: SupabaseClient,
   id: string,
   userId: string,
-  patch: Partial<Pick<SavingsGoal, "title" | "targetAmount" | "targetDate" | "plannedMonthlyAmount" | "status">>
+  patch: Partial<
+    Pick<SavingsGoal, "title" | "targetAmount" | "targetDate" | "plannedMonthlyAmount" | "status" | "categoryId">
+  >
 ) {
   const mappedPatch: Record<string, unknown> = {};
   if (patch.title !== undefined) mappedPatch.title = patch.title;
@@ -85,6 +90,7 @@ export async function updateGoal(
   if (patch.targetDate !== undefined) mappedPatch.target_date = patch.targetDate;
   if (patch.plannedMonthlyAmount !== undefined) mappedPatch.planned_monthly_amount = patch.plannedMonthlyAmount;
   if (patch.status !== undefined) mappedPatch.status = patch.status;
+  if (patch.categoryId !== undefined) mappedPatch.category_id = patch.categoryId;
 
   const { data, error } = await supabase
     .from("savings_goals")
@@ -102,10 +108,10 @@ export async function updateGoal(
   return mapGoal(data);
 }
 
-export async function archiveGoal(supabase: SupabaseClient, id: string, userId: string) {
+export async function deleteGoal(supabase: SupabaseClient, id: string, userId: string) {
   const { data, error } = await supabase
     .from("savings_goals")
-    .update({ status: "archived" })
+    .delete()
     .eq("id", id)
     .eq("user_id", userId)
     .select("id")

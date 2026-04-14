@@ -7,6 +7,7 @@ import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
 import { goalsRouter } from "./modules/goals/routes.js";
 import { contributionsRouter } from "./modules/contributions/routes.js";
 import { projectionsRouter } from "./modules/projections/routes.js";
+import { categoriesRouter } from "./modules/categories/routes.js";
 
 export function buildApp() {
   const app = express();
@@ -27,6 +28,7 @@ export function buildApp() {
   app.use("/api/goals", goalsRouter);
   app.use("/api", contributionsRouter);
   app.use("/api", projectionsRouter);
+  app.use("/api", categoriesRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

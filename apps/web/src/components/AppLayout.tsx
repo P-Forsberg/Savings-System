@@ -59,6 +59,8 @@ export function AppLayout() {
       <nav className="nav">
         <NavLink to="/">Home</NavLink>
         <NavLink to="/create">Create</NavLink>
+        <NavLink to="/category">Categories</NavLink>
+        <NavLink to="/history-savings">History savings</NavLink>
         <NavLink to="/settings">Settings</NavLink>
       </nav>
 

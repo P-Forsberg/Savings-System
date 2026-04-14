@@ -3,6 +3,7 @@ export type GoalStatus = "active" | "completed" | "paused" | "archived";
 export interface SavingsGoal {
   id: string;
   userId: string;
+  categoryId?: string | null;
   title: string;
   targetAmount: number;
   startDate: string;
@@ -20,6 +21,14 @@ export interface Contribution {
   contributionDate: string;
   amount: number;
   note?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Category {
+  id: string;
+  userId: string;
+  name: string;
   createdAt: string;
   updatedAt: string;
 }
