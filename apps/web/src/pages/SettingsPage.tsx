@@ -1,10 +1,14 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import { PageShell } from "../components/PageShell";
+import { setStoredToken } from "../lib/api";
 import { supabase } from "../lib/supabase";
 
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 export function SettingsPage() {
+  const navigate = useNavigate();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,38 +45,32 @@ export function SettingsPage() {
   }
 
   return (
-    <section className="card">
-      <h2>Settings</h2>
-      <p>API URL: {apiUrl}</p>
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <label>
-          New password
-          <input
-            type="password"
-            autoComplete="new-password"
-            value={newPassword}
-            onChange={(event) => setNewPassword(event.target.value)}
-            required
-            minLength={8}
-          />
-        </label>
-        <label>
-          Confirm new password
-          <input
-            type="password"
-            autoComplete="new-password"
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            required
-            minLength={8}
-          />
-        </label>
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Updating..." : "Update password"}
+    <PageShell title="Inställningar" subtitle={`API: ${apiUrl}`}>
+      <form className="card" style={{ padding: "14px", display: "grid", gap: "8px" }} onSubmit={handleSubmit}>
+        <div className="field">
+          <label>Nytt lösenord</label>
+          <input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} />
+        </div>
+        <div className="field">
+          <label>Bekräfta lösenord</label>
+          <input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
+        </div>
+        <button type="submit" className="btn" disabled={isSubmitting}>
+          {isSubmitting ? "Uppdaterar..." : "Uppdatera lösenord"}
         </button>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={() => {
+            setStoredToken("");
+            navigate("/login", { replace: true });
+          }}
+        >
+          Logga ut
+        </button>
+        {error ? <p>{error}</p> : null}
+        {success ? <p>{success}</p> : null}
       </form>
-      {error ? <p className="error">{error}</p> : null}
-      {success ? <p className="muted">{success}</p> : null}
-    </section>
+    </PageShell>
   );
 }

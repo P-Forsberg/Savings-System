@@ -20,5 +20,5 @@ export const updateGoalSchema = z.object({
   targetDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   plannedMonthlyAmount: z.number().positive().optional(),
   status: goalStatusSchema.optional(),
-  categoryId: z.string().uuid().optional()
+  categoryId: z.string().uuid().nullable().optional()
 });

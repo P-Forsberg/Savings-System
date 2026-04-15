@@ -80,6 +80,7 @@ export function updateGoal(
     targetDate: string;
     plannedMonthlyAmount: number;
     status: GoalStatus;
+    categoryId: string | null;
   }>
 ) {
   return request<Goal>(`/api/goals/${goalId}`, {

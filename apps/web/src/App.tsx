@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { AppLayout } from "./components/AppLayout";
+import { BottomNav } from "./components/BottomNav";
 import { getStoredToken } from "./lib/api";
 import { CreateGoalPage } from "./pages/CreateGoalPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
@@ -18,6 +18,15 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   return children;
 }
 
+function ProtectedLayout({ children }: { children: ReactNode }) {
+  return (
+    <>
+      {children}
+      <BottomNav />
+    </>
+  );
+}
+
 function App() {
   return (
     <Routes>
@@ -25,17 +34,63 @@ function App() {
       <Route
         element={
           <ProtectedRoute>
-            <AppLayout />
+            <ProtectedLayout>
+              <CreateGoalPage />
+            </ProtectedLayout>
           </ProtectedRoute>
         }
-      >
-        <Route path="/" element={<HomePage />} />
-        <Route path="/history-savings" element={<HistorySavingsPage />} />
-        <Route path="/goals/:goalId" element={<GoalDetailsPage />} />
-        <Route path="/create" element={<CreateGoalPage />} />
-        <Route path="/categories" element={<CategoriesPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-      </Route>
+        path="/create"
+      />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <ProtectedLayout>
+              <HomePage />
+            </ProtectedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          <ProtectedRoute>
+            <ProtectedLayout>
+              <HistorySavingsPage />
+            </ProtectedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/goals/:goalId"
+        element={
+          <ProtectedRoute>
+            <ProtectedLayout>
+              <GoalDetailsPage />
+            </ProtectedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/categories"
+        element={
+          <ProtectedRoute>
+            <ProtectedLayout>
+              <CategoriesPage />
+            </ProtectedLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <ProtectedLayout>
+              <SettingsPage />
+            </ProtectedLayout>
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

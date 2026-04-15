@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { Landmark } from "lucide-react";
 import { setStoredToken } from "../lib/api";
 import { supabase } from "../lib/supabase";
 
@@ -33,23 +34,20 @@ export function LoginPage() {
   }
 
   return (
-    <div className="auth-page">
-      <section className="card auth-card">
-        <h2>Log in</h2>
-        <p className="muted">Use your Supabase account to continue.</p>
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <label>
-            Email
-            <input
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-          </label>
-          <label>
-            Password
+    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: "16px" }}>
+      <section className="card" style={{ width: "100%", maxWidth: "420px", padding: "18px", display: "grid", gap: "10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Landmark size={22} />
+          <h2>Savings Counter</h2>
+        </div>
+        <p className="goal-category">Logga in med ditt Supabase-konto.</p>
+        <form style={{ display: "grid", gap: "8px" }} onSubmit={handleSubmit}>
+          <div className="field">
+            <label>E-post</label>
+            <input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+          </div>
+          <div className="field">
+            <label>Lösenord</label>
             <input
               type="password"
               autoComplete="current-password"
@@ -57,12 +55,12 @@ export function LoginPage() {
               onChange={(event) => setPassword(event.target.value)}
               required
             />
-          </label>
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Logging in..." : "Log in"}
+          </div>
+          <button type="submit" className="btn" disabled={isSubmitting}>
+            {isSubmitting ? "Loggar in..." : "Logga in"}
           </button>
         </form>
-        {error ? <p className="error">{error}</p> : null}
+        {error ? <p>{error}</p> : null}
       </section>
     </div>
   );

@@ -2,18 +2,10 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageShell } from "../components/PageShell";
 import { createGoal, listCategories } from "../lib/api";
+import { nextYearIso, todayIso } from "../lib/format";
 import type { Category } from "../types";
-
-function todayIso() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function nextYearIso() {
-  const now = new Date();
-  const next = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
-  return next.toISOString().slice(0, 10);
-}
 
 export function CreateGoalPage() {
   const navigate = useNavigate();
@@ -75,57 +67,48 @@ export function CreateGoalPage() {
   }
 
   return (
-    <section className="card">
-      <h2>Create goal</h2>
-      <form className="form-grid" onSubmit={handleSubmit}>
-        <label className="full">
-          Title
-          <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Vacation 2027" />
-        </label>
-        <label>
-          Target amount
+    <PageShell title="Skapa mål" subtitle="Definiera ditt nya sparmål">
+      <form className="card" style={{ padding: "16px", display: "grid", gap: "10px" }} onSubmit={handleSubmit}>
+        <div className="field">
+          <label>Titel</label>
+          <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Semester 2027" />
+        </div>
+        <div className="field">
+          <label>Målbelopp (SEK)</label>
+          <input type="number" value={targetAmount} onChange={(event) => setTargetAmount(event.target.value)} />
+        </div>
+        <div className="field">
+          <label>Månadsbelopp (SEK)</label>
           <input
             type="number"
-            step="1"
-            value={targetAmount}
-            onChange={(event) => setTargetAmount(event.target.value)}
-            placeholder="50000"
-          />
-        </label>
-        <label>
-          Planned monthly amount
-          <input
-            type="number"
-            step="1"
             value={plannedMonthlyAmount}
             onChange={(event) => setPlannedMonthlyAmount(event.target.value)}
-            placeholder="3000"
           />
-        </label>
-        <label>
-          Start date
+        </div>
+        <div className="field">
+          <label>Startdatum</label>
           <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
-        </label>
-        <label>
-          Category
+        </div>
+        <div className="field">
+          <label>Slutdatum</label>
+          <input type="date" value={targetDate} onChange={(event) => setTargetDate(event.target.value)} />
+        </div>
+        <div className="field">
+          <label>Kategori</label>
           <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
-            <option value="">No category</option>
+            <option value="">Ingen kategori</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
               </option>
             ))}
           </select>
-        </label>
-        <label>
-          Target date
-          <input type="date" value={targetDate} onChange={(event) => setTargetDate(event.target.value)} />
-        </label>
-        <button type="submit" disabled={saving}>
-          {saving ? "Saving..." : "Create"}
+        </div>
+        <button type="submit" className="btn" disabled={saving}>
+          {saving ? "Sparar..." : "Skapa mål"}
         </button>
+        {error ? <p>{error}</p> : null}
       </form>
-      {error ? <p className="error">{error}</p> : null}
-    </section>
+    </PageShell>
   );
 }

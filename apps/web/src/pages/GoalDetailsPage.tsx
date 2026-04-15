@@ -1,9 +1,23 @@
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { createContribution, deleteGoal, getGoal, updateGoal } from "../lib/api";
-import { formatIsoDate, formatSek } from "../lib/format";
-import type { Contribution, Goal, GoalProjection } from "../types";
+import { PageShell } from "../components/PageShell";
+import { ProgressBar } from "../components/ProgressBar";
+import { StatusBadge } from "../components/StatusBadge";
+import { SummaryCard } from "../components/SummaryCard";
+import { createContribution, deleteGoal, getGoal, listCategories, updateGoal } from "../lib/api";
+import { formatDate, formatSEK } from "../lib/format";
+import type { Category, Contribution, Goal, GoalProjection } from "../types";
+import {
+  ArrowLeft,
+  CalendarClock,
+  CheckCircle2,
+  Coins,
+  Plus,
+  Trash2,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
 
 export function GoalDetailsPage() {
   const { goalId = "" } = useParams();
@@ -16,6 +30,8 @@ export function GoalDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [actionPending, setActionPending] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [showForm, setShowForm] = useState(false);
 
   const [contributionDate, setContributionDate] = useState(new Date().toISOString().slice(0, 10));
   const [amount, setAmount] = useState("");
@@ -42,6 +58,23 @@ export function GoalDetailsPage() {
     }
     loadGoal();
   }, [goalId, loadGoal]);
+
+  useEffect(() => {
+    let active = true;
+    listCategories()
+      .then((items) => {
+        if (active) {
+          setCategories(items);
+        }
+      })
+      .catch(() => {
+        // keep details page usable even if category listing fails
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function handleAddContribution(event: FormEvent) {
     event.preventDefault();
@@ -107,110 +140,104 @@ export function GoalDetailsPage() {
     }
   }
 
-  if (loading) {
-    return <p>Loading goal...</p>;
-  }
-
-  if (error) {
-    return <p className="error">{error}</p>;
-  }
-
-  if (!goal || !projection) {
-    return <p>No goal data.</p>;
-  }
+  if (loading) return <PageShell title="Målladdning"><p>Laddar...</p></PageShell>;
+  if (error) return <PageShell title="Fel"><p>{error}</p></PageShell>;
+  if (!goal || !projection) return <PageShell title="Mål saknas"><p>Inget mål hittades.</p></PageShell>;
 
   return (
-    <section>
-      <div className="card">
-        <h2>{goal.title}</h2>
-        <p className="muted">
-          {formatIsoDate(goal.startDate)} - {formatIsoDate(goal.targetDate)}
+    <PageShell
+      title={goal.title}
+      subtitle={goal.categoryId ? categories.find((x) => x.id === goal.categoryId)?.name : undefined}
+      action={
+        <button type="button" className="btn btn-ghost" onClick={() => navigate(-1)} aria-label="Tillbaka">
+          <ArrowLeft size={18} />
+        </button>
+      }
+    >
+      <div className="card detail-top-card">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <StatusBadge status={goal.status} />
+          <p className="goal-category">{formatDate(goal.startDate)} → {formatDate(goal.targetDate)}</p>
+        </div>
+        <p>
+          <strong style={{ fontSize: "38px", letterSpacing: "-0.01em" }}>{formatSEK(projection.savedSoFar)}</strong>{" "}
+          <span className="goal-category">/ {formatSEK(goal.targetAmount)}</span>
         </p>
-        <p className="muted">
-          Status: <strong>{goal.status}</strong>
-        </p>
-        <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.75rem" }}>
-          <button
-            type="button"
-            onClick={handleMarkCompleted}
-            disabled={actionPending || goal.status === "completed"}
-          >
-            {actionPending ? "Saving..." : "Complete/Purchased"}
-          </button>
-          <button type="button" onClick={handleDeleteGoal} disabled={actionPending}>
-            Delete
-          </button>
-        </div>
+        <ProgressBar saved={projection.savedSoFar} target={goal.targetAmount} />
       </div>
 
-      <div className="kpi-grid">
-        <div className="card">
-          <p className="muted">Saved so far</p>
-          <p className="value">{formatSek(projection.savedSoFar)}</p>
-        </div>
-        <div className="card">
-          <p className="muted">Remaining</p>
-          <p className="value">{formatSek(projection.remainingAmount)}</p>
-        </div>
-        <div className="card">
-          <p className="muted">Required next month</p>
-          <p className="value">{formatSek(projection.requiredNextMonthAmount)}</p>
-        </div>
-        <div className="card">
-          <p className="muted">Estimated completion</p>
-          <p className="value">{formatIsoDate(projection.estimatedCompletionDate)}</p>
-          <p className="muted">{projection.onTrack ? "On track" : "Behind plan"}</p>
-        </div>
+      <div className="summary-grid">
+        <SummaryCard label="Kvar att spara" value={formatSEK(projection.remainingAmount)} icon={<Coins size={18} />} />
+        <SummaryCard label="Behov nästa mån" value={formatSEK(projection.requiredNextMonthAmount)} icon={<TrendingDown size={18} />} />
+        <SummaryCard label="Beräknad klar" value={formatDate(projection.estimatedCompletionDate)} icon={<CalendarClock size={18} />} />
+        <SummaryCard
+          label="Status"
+          value={projection.onTrack ? "I fas" : "Bakom ⚠️"}
+          icon={projection.onTrack ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+        />
       </div>
 
-      <div className="card">
-        <h3>Add contribution</h3>
-        <form className="form-grid" onSubmit={handleAddContribution}>
-          <label>
-            Date
-            <input type="date" value={contributionDate} onChange={(event) => setContributionDate(event.target.value)} />
-          </label>
-          <label>
-            Amount (SEK)
-            <input
-              type="number"
-              step="1"
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-              placeholder="1000"
-            />
-          </label>
-          <label className="full">
-            Note
-            <input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Optional note" />
-          </label>
-          <button type="submit" disabled={submitting}>
-            {submitting ? "Saving..." : "Add contribution"}
-          </button>
-        </form>
+      {!showForm ? (
+        <button type="button" className="outline-wide-btn" onClick={() => setShowForm(true)}>
+          <Plus size={18} />
+          Lägg till insättning
+        </button>
+      ) : (
+        <div className="card" style={{ padding: "14px" }}>
+          <h3 style={{ marginBottom: "8px" }}>Ny insättning</h3>
+          <form style={{ display: "grid", gap: "8px" }} onSubmit={handleAddContribution}>
+            <div className="field">
+              <label>Datum</label>
+              <input type="date" value={contributionDate} onChange={(event) => setContributionDate(event.target.value)} />
+            </div>
+            <div className="field">
+              <label>Belopp (SEK)</label>
+              <input type="number" step="1" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="1000" />
+            </div>
+            <div className="field">
+              <label>Anteckning</label>
+              <input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Valfritt" />
+            </div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button type="submit" className="btn" disabled={submitting}>
+                {submitting ? "Sparar..." : "Spara"}
+              </button>
+              <button type="button" className="btn btn-ghost" onClick={() => setShowForm(false)}>
+                Avbryt
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      <h3 style={{ marginTop: "4px" }}>Insättningshistorik</h3>
+      <div style={{ display: "grid", gap: "8px" }}>
+        {contributions.length === 0 ? <p className="goal-category">Inga insättningar ännu.</p> : null}
+        {contributions.map((item) => (
+          <div key={item.id} className="history-row">
+            <div>
+              <p style={{ fontWeight: 700 }}>{formatSEK(item.amount)}</p>
+              {item.note ? <p className="goal-category">{item.note}</p> : null}
+            </div>
+            <p className="goal-category">{formatDate(item.contributionDate)}</p>
+          </div>
+        ))}
       </div>
 
-      <div className="card">
-        <h3>Contributions</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Amount</th>
-              <th>Note</th>
-            </tr>
-          </thead>
-          <tbody>
-            {contributions.map((item) => (
-              <tr key={item.id}>
-                <td>{formatIsoDate(item.contributionDate)}</td>
-                <td>{formatSek(item.amount)}</td>
-                <td>{item.note ?? "-"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="details-footer-actions">
+        <button
+          type="button"
+          className="outline-wide-btn"
+          onClick={handleMarkCompleted}
+          disabled={actionPending || goal.status === "completed"}
+        >
+          <CheckCircle2 size={18} />
+          {actionPending ? "Sparar..." : "Markera klar"}
+        </button>
+        <button type="button" className="danger-icon-btn" onClick={handleDeleteGoal} disabled={actionPending}>
+          <Trash2 size={17} />
+        </button>
       </div>
-    </section>
+    </PageShell>
   );
 }

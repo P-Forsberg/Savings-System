@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { getHealthStatus, listGoals } from "../lib/api";
-import { formatPercent, formatSek, formatIsoDate } from "../lib/format";
+import { Target, Wallet } from "lucide-react";
+import { PageShell } from "../components/PageShell";
+import { EmptyState } from "../components/EmptyState";
+import { GoalCard } from "../components/GoalCard";
+import { SummaryCard } from "../components/SummaryCard";
+import { getHealthStatus, listCategories, listGoals } from "../lib/api";
+import { progressPercent, formatSEK } from "../lib/format";
 import type { GoalWithProjection } from "../types";
 
 export function HomePage() {
   const [health, setHealth] = useState("loading");
   const [goals, setGoals] = useState<GoalWithProjection[]>([]);
+  const [categoryNameById, setCategoryNameById] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -39,49 +44,52 @@ export function HomePage() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    listCategories()
+      .then((items) => {
+        if (!active) return;
+        const map = items.reduce<Record<string, string>>((acc, item) => {
+          acc[item.id] = item.name;
+          return acc;
+        }, {});
+        setCategoryNameById(map);
+      })
+      .catch(() => {
+        // keep page usable even if categories fail
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const totals = useMemo(() => {
     const saved = goals.reduce((sum, goal) => sum + goal.projection.savedSoFar, 0);
     const target = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
-    const progress = target > 0 ? (saved / target) * 100 : 0;
+    const progress = progressPercent(saved, target);
     return { saved, target, progress };
   }, [goals]);
 
   return (
-    <section>
-      <div className="card">
-        <h2>Total savings</h2>
-        <p className="value">{formatSek(totals.saved)}</p>
-        <p className="muted">
-          Target: {formatSek(totals.target)} - Progress: {formatPercent(totals.progress)}
-        </p>
-        <p className="muted">API health: {health}</p>
+    <PageShell title="Savings Counter" subtitle={`API: ${health}`}>
+      <div className="summary-grid">
+        <SummaryCard label="Totalt sparat" value={formatSEK(totals.saved)} icon={<Wallet size={18} />} accent />
+        <SummaryCard label="Totalt mål" value={formatSEK(totals.target)} icon={<Target size={18} />} />
+        <SummaryCard label="Framsteg" value={`${totals.progress}%`} icon={<Target size={18} />} />
       </div>
-
-      {loading ? <p>Loading goals...</p> : null}
-      {error ? <p className="error">{error}</p> : null}
-
-      <div className="goals-grid">
-        {goals.map((goal) => {
-          const progress = goal.targetAmount > 0 ? (goal.projection.savedSoFar / goal.targetAmount) * 100 : 0;
-          return (
-            <Link key={goal.id} to={`/goals/${goal.id}`} className="card goal-card">
-              <h3>{goal.title}</h3>
-              <p>
-                {formatSek(goal.projection.savedSoFar)} / {formatSek(goal.targetAmount)}
-              </p>
-              <p className="muted">
-                {formatIsoDate(goal.startDate)} - {formatIsoDate(goal.targetDate)}
-              </p>
-              <div className="progress-track">
-                <div className="progress-fill" style={{ width: `${Math.min(100, progress)}%` }} />
-              </div>
-              <p className="muted">
-                {formatPercent(progress)} - <strong>{goal.status}</strong>
-              </p>
-            </Link>
-          );
-        })}
-      </div>
-    </section>
+      {loading ? <p>Laddar mål...</p> : null}
+      {error ? <p>{error}</p> : null}
+      {!loading && goals.length === 0 ? (
+        <EmptyState title="Inga mål ännu" description="Skapa ditt första sparmål för att komma igång." />
+      ) : (
+        goals.map((goal) => (
+          <GoalCard
+            key={goal.id}
+            goal={goal}
+            category={goal.categoryId ? (categoryNameById[goal.categoryId] ?? "Kategori") : undefined}
+          />
+        ))
+      )}
+    </PageShell>
   );
 }

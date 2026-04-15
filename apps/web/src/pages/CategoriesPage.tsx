@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { createCategory, listCategories } from "../lib/api";
-import type { Category } from "../types";
+import { PageShell } from "../components/PageShell";
+import { EmptyState } from "../components/EmptyState";
+import { createCategory, listCategories, listGoals } from "../lib/api";
+import type { Category, GoalWithProjection } from "../types";
 
 export function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [goals, setGoals] = useState<GoalWithProjection[]>([]);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -12,10 +15,11 @@ export function CategoriesPage() {
 
   useEffect(() => {
     let active = true;
-    listCategories()
-      .then((data) => {
+    Promise.all([listCategories(), listGoals()])
+      .then(([categoriesData, goalsData]) => {
         if (active) {
-          setCategories(data);
+          setCategories(categoriesData);
+          setGoals(goalsData);
         }
       })
       .catch((err: Error) => {
@@ -50,35 +54,28 @@ export function CategoriesPage() {
   }
 
   return (
-    <section className="card">
-      <h2>Categories</h2>
-      <p className="muted">Create your own categories like Training, Golf or Home.</p>
-
-      <form className="form-grid" onSubmit={handleSubmit}>
-        <label className="full">
-          Name
-          <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Training" />
-        </label>
-        <button type="submit" disabled={saving}>
-          {saving ? "Saving..." : "Create category"}
+    <PageShell title="Kategorier" subtitle="Organisera dina sparmål">
+      <form className="card" style={{ padding: "14px", display: "grid", gap: "8px" }} onSubmit={handleSubmit}>
+        <div className="field">
+          <label>Ny kategori</label>
+          <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Träning" />
+        </div>
+        <button type="submit" className="btn" disabled={saving}>
+          {saving ? "Sparar..." : "Skapa kategori"}
         </button>
       </form>
-
-      {loading ? <p>Loading categories...</p> : null}
-      {error ? <p className="error">{error}</p> : null}
-
-      {!loading && categories.length === 0 ? <p className="muted">No categories yet.</p> : null}
-
-      {categories.length > 0 ? (
-        <div className="goals-grid">
-          {categories.map((category) => (
-            <article className="card" key={category.id}>
-              <h3>{category.name}</h3>
-              <p className="muted">{category.createdAt.slice(0, 10)}</p>
-            </article>
-          ))}
-        </div>
-      ) : null}
-    </section>
+      {loading ? <p>Laddar kategorier...</p> : null}
+      {error ? <p>{error}</p> : null}
+      {!loading && categories.length === 0 ? (
+        <EmptyState title="Inga kategorier" description="Skapa din första kategori för bättre översikt." />
+      ) : (
+        categories.map((category) => (
+          <article className="card" key={category.id} style={{ padding: "14px" }}>
+            <h3>{category.name}</h3>
+            <p className="goal-category">{goals.filter((goal) => goal.categoryId === category.id).length} mål</p>
+          </article>
+        ))
+      )}
+    </PageShell>
   );
 }
