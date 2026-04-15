@@ -1,4 +1,5 @@
 import type { Category, Contribution, Goal, GoalProjection, GoalStatus, GoalWithProjection } from "../types";
+import { supabase } from "./supabase";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "";
 const TOKEN_STORAGE_KEY = "savings_api_token";
@@ -34,6 +35,11 @@ async function request<T>(path: string, init?: RequestInit, requiresAuth = true)
   });
 
   if (!response.ok) {
+    // Handle authentication errors by signing out
+    if (response.status === 401) {
+      await supabase.auth.signOut();
+      setStoredToken("");
+    }
     const body = (await response.json().catch(() => null)) as { error?: string } | null;
     throw new Error(body?.error ?? `Request failed (${response.status})`);
   }

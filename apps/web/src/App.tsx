@@ -1,7 +1,13 @@
 import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { BottomNav } from "./components/BottomNav";
+import { setStoredToken } from "./lib/api";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { AppLayout } from "./components/AppLayout";
 import { getStoredToken } from "./lib/api";
+import { supabase } from "./lib/supabase";
+
 import { CreateGoalPage } from "./pages/CreateGoalPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { GoalDetailsPage } from "./pages/GoalDetailsPage";
@@ -28,6 +34,35 @@ function ProtectedLayout({ children }: { children: ReactNode }) {
 }
 
 function App() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Initialize token from Supabase session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.access_token) {
+        setStoredToken(session.access_token);
+      }
+    });
+
+    // Listen for auth state changes and update token accordingly
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.access_token) {
+        // Update token when session is refreshed or user logs in
+        setStoredToken(session.access_token);
+      } else {
+        // Clear token and redirect to login when session ends
+        setStoredToken("");
+        navigate("/login", { replace: true });
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
